@@ -1,0 +1,38 @@
+<ion-view view-title="{{device.name}}">
+  <ion-content class="padding">
+
+      <div class="list list-inset">
+        <label class="item item-input">
+          <input type='text'class='ip_address' ng-model='tester.value'></input>
+        </label>
+      </div>
+
+      <button class="button button-block button-positive" ng-click="onWrite(tester)">Write</button>
+
+    <div class="list card">
+      <div class="item item-divider">{{device.name}}</div>
+      <div class="item item-body">
+          {{device.id}}
+      </div>
+      <div class="item item-body">
+          {{dev}}
+      </div>
+    </div>
+    <!-- <div class="list card">
+      <div class="item item-divider">Services</div>
+        <ion-list>
+          <ion-item ng-repeat="service in device.services">
+            {{service}}
+          </ion-item>
+        </ion-list>
+    </div> -->
+
+  <button class="button button-block button-positive" ng-click="onRead()">Read</button>
+  <div class='list card'>
+    <!-- <div>{{dev}}</div> -->
+    <!-- <div>{{dev.ip}}</div>
+    <div>{{dev.netmask}}</div> -->
+  </div>
+
+  </ion-content>
+</ion-view>
