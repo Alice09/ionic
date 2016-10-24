@@ -5,13 +5,13 @@
 // the 2nd parameter is an array of 'requires'
 // 'starter.services' is found in services.js
 // 'starter.controllers' is found in controllers.js
-angular.module('starter', ['ionic','ionic-timepicker', 'starter.controllers', 'starter.services'])
+angular.module('starter', ['ionic','ionic-timepicker', 'starter.controllers', 'starter.services','ngAnimate', 'ui.rCalendar'])
 
 .constant('ApiEndpoint', {
   url: 'http://localhost:8100'
 })
 
-.run(function($ionicPlatform, $http, $rootScope, ApiEndpoint) {
+.run(function($ionicPlatform, $http, $rootScope, ApiEndpoint,$animate) {
   $ionicPlatform.ready(function() {
     // Hide the accessory bar by default (remove this to show the accessory bar above the keyboard
     // for form inputs)
@@ -26,32 +26,36 @@ angular.module('starter', ['ionic','ionic-timepicker', 'starter.controllers', 's
     }
 
     // CORS 요청 데모
-  $http.get(ApiEndpoint.url).
-    success(function(data, status, headers, config) {
-      console.log(config);
-      console.log(status);
-      console.log(data);
-      $rootScope.name = data.name;
-      $rootScope.email= data.email;
-      $rootScope.blog = data.blog;
-    }).
-    error(function(data, status, headers, config) {
-      console.log(config);
-      console.log(status);
-      console.log(data);
-    });
+  // $http.get(ApiEndpoint.url).
+  //   success(function(data, status, headers, config) {
+  //     console.log(config);
+  //     console.log(status);
+  //     console.log(data);
+  //     $rootScope.name = data.name;
+  //     $rootScope.email= data.email;
+  //     $rootScope.blog = data.blog;
+  //   }).
+  //   error(function(data, status, headers, config) {
+  //     console.log(config);
+  //     console.log(status);
+  //     console.log(data);
+  //   });
 
 
     // just checking if the BLE plugin works
-    ble.isEnabled(
-    function() {
-        console.log("Bluetooth is enabled");
-    },
-    function() {
-        console.log("Bluetooth is *not* enabled");
-        alert("Bluetooth is *not* enabled");
-    }
-  );
+  //   ble.isEnabled(
+  //   function() {
+  //       console.log("Bluetooth is enabled");
+  //   },
+  //   function() {
+  //       console.log("Bluetooth is *not* enabled");
+  //       alert("Bluetooth is *not* enabled");
+  //   }
+  // );
+
+  // calendar plugin use this
+  // 'use strict';
+  $animate.enabled(false);
 
   });
 })
@@ -82,24 +86,24 @@ angular.module('starter', ['ionic','ionic-timepicker', 'starter.controllers', 's
       }
     }
   })
-  .state('tab.test', {
-      url: '/test',
+  // .state('tab.test', {
+  //     url: '/test',
+  //     views: {
+  //       'tab-test': {
+  //         templateUrl: 'templates/tab-test.html',
+  //         controller: 'viewerCtrl'
+  //       }
+  //     }
+  //   })
+  .state('tab.home', {
+      url: '/home',
       views: {
-        'tab-test': {
-          templateUrl: 'templates/tab-test.html',
-          controller: 'viewerCtrl'
-        }
+          'home-tab': {
+              templateUrl: 'templates/tab-home.html',
+              controller: 'CalendarDemoCtrl'
+          }
       }
-    })
-    // .state('tab.list-detail', {
-    //   url: '/test/:chatId',
-    //   views: {
-    //     'tab-chats': {
-    //       templateUrl: 'templates/chat-detail.html',
-    //       controller: 'ChatDetailCtrl'
-    //     }
-    //   }
-    // })
+  })
     .state('tab.ble', {
       url: '/ble',
       views: {
@@ -122,7 +126,7 @@ angular.module('starter', ['ionic','ionic-timepicker', 'starter.controllers', 's
   ;
 
   // if none of the above states are matched, use this as the fallback
-  $urlRouterProvider.otherwise('/tab/dash');
+  $urlRouterProvider.otherwise('/tab/home');
 
   var timePickerObj = {
     inputTime: (((new Date()).getHours() * 60 * 60) + ((new Date()).getMinutes() * 60)),

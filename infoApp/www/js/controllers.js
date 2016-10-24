@@ -1,29 +1,5 @@
 angular.module('starter.controllers', [])
 
-.controller('AccountCtrl', function($scope) {
-  $scope.addToCalendar = function() {
-      if (window.plugins && window.plugins.calendar) {
-          var hour = $scope.session.time.substring(0,$scope.session.time.indexOf(':'));
-          if ($scope.session.time.indexOf("pm")>-1)
-              hour = parseInt(hour)+12;
-          var today = new Date();
-          console.log("Date year" + today.getFullYear() + " mo " + today.getMonth()+ " day " + today.getDate());
-          var startDate = new Date(today.getFullYear(),today.getMonth(),today.getDate(),hour,00,00);
-          var endDate = new Date();
-          endDate.setTime(startDate.getTime() + 3600000);//one hour
-
-          window.plugins.calendar.createEvent($scope.session.title, $scope.session.room, $scope.session.description, startDate, endDate,
-              function () {
-                  alert($scope.session.title + " has been added to your calendar.");
-              },
-              function (error) {
-                  console.log("Calendar fail " + error);
-              });
-      }
-      else console.log("Calendar plugin not available.");
-  }
-})
-
 .controller('DashCtrl',
 [           '$scope', '$http','$state',"ionicTimePicker",
   function(  $scope,   $http , $state , ionicTimePicker ) {
@@ -37,8 +13,8 @@ angular.module('starter.controllers', [])
 
     // var ip = "http://127.0.0.1:4000";
     // infomirror.falinux.com
-    $http.get(ip+"/api/InofMirrorDBs?filter[order]=date%20ASC").then(function (response) {
-
+    // $http.get(ip+"/api/InofMirrorDBs?filter[order]=date%20ASC").then(function (response) {
+    $http.get(ip+"/api/InofMirrorDBs?filter[where][date][gte]="+(new Date()).toLocaleDateString()).then(function (response) {
       $scope.lists = response.data;
       console.log($scope.lists);
       $scope.msg=response;
@@ -49,12 +25,29 @@ angular.module('starter.controllers', [])
       $scope.msg = "error : "+response;
     });
 
+
     $scope.put = function(){
+
+      for (var i=0;i<$scope.lists.length;i++) {
+
+        if((new Date($scope.lists[i].date).toLocaleTimeString() < $scope.timeset2.toLocaleTimeString())
+        && (new Date($scope.lists[i].endMeetTime).toLocaleTimeString() > $scope.timeset.toLocaleTimeString())){
+          // console.log(new Date($scope.lists[i].date).toLocaleTimeString());
+          // console.log($scope.timeset2.toLocaleTimeString());
+          // console.log(new Date($scope.lists[i].endMeetTime).toLocaleTimeString());
+          // console.log($scope.timeset.toLocaleTimeString());
+          console.log("time error!!!!");
+          window.location.reload(true)
+          return;
+        }
+      }
+
       var data = {
         'date':$scope.timeset,
         'person': $scope.people,
         'endMeetTime': $scope.timeset2,
-        'place': 'InfomirrorBLE'
+        // 'place': 'InfomirrorBLE'
+        'place': 'chamber1'
         // 'id':0
       };
 
@@ -71,6 +64,8 @@ angular.module('starter.controllers', [])
       ).catch(function(reason){
         console.log(reason);
       });
+
+       window.location.reload(true)
     };
 
 
@@ -80,6 +75,7 @@ angular.module('starter.controllers', [])
       );
       $scope.people += $scope.data.show+",";
       console.log($scope.people);
+      $scope.data.show='';
     };
 
     $scope.insert= function(){
@@ -90,10 +86,13 @@ angular.module('starter.controllers', [])
               console.log('Time not selected');
             } else {
               var setDate = new Date();
-              var selectedTime = val % (60 * 60)
+              // var selectedTime = val % (60 * 60)
+              var selectedTime = new Date(val*1000);
+              var hours = selectedTime.getUTCHours();
+              var minutes = selectedTime.getUTCMinutes();
 
-              var hours = (val / (60 * 60)).toFixed(0);
-              var minutes = selectedTime/60;
+              // var hours = (val / (60 * 60)).toFixed(0);
+              // var minutes = selectedTime/60;
 
               console.log('Selected epoch is : ', val,
                'and the time is ', hours, 'H :', minutes, 'M');
@@ -101,7 +100,9 @@ angular.module('starter.controllers', [])
                if (hours.toString().length == 1  ){ hours = '0' + hours; }
                if (minutes.toString().length == 1){ minutes = '0' + minutes; }
 
-               $scope.date  = $scope.timeset = settime.toLocaleDateString()+" "+hours+":"+minutes;
+              //  $scope.date  = $scope.timeset = settime.toLocaleDateString()+" "+hours+":"+minutes;
+              $scope.timeset = new Date(settime.getFullYear(), settime.getMonth(), settime.getDate(), hours, minutes);
+              $scope.date = $scope.timeset.toLocaleTimeString();
             }
           },
           inputTime: settime.getHours()*60*60,   //Optional
@@ -110,34 +111,41 @@ angular.module('starter.controllers', [])
           setLabel: 'Set'    //Optional
         };
         ionicTimePicker.openTimePicker(ipObj1);
-      }
-          $scope.insert2= function(){
-              var settime = new Date();
-              var ipObj1 = {
-                callback: function (val) {      //Mandatory
-                  if (typeof (val) === 'undefined') {
-                    console.log('Time not selected');
-                  } else {
-                    var setDate = new Date();
-                    var selectedTime = val % (60 * 60)
+      };
 
-                    var hours = (val / (60 * 60)).toFixed(0);
-                    var minutes = selectedTime/60;
+      $scope.insert2= function(){
+          var settime = new Date();
+          var ipObj1 = {
+            callback: function (val) {      //Mandatory
+              if (typeof (val) === 'undefined') {
+                console.log('Time not selected');
+              } else {
+                var setDate = new Date();
+                // var selectedTime = val % (60 * 60)
+                //
+                // var hours = (val / (60 * 60)).toFixed(0);
+                // var minutes = selectedTime/60;
 
-                   if (hours.toString().length == 1  ){ hours = '0' + hours; }
-                   if (minutes.toString().length == 1){ minutes = '0' + minutes; }
+                var selectedTime = new Date(val*1000);
+                var hours = selectedTime.getUTCHours();
+                var minutes = selectedTime.getUTCMinutes();
 
-                    $scope.timeset2 = settime.toLocaleDateString()+" "+hours+":"+minutes;
-                    $scope.date += " ~ "+$scope.timeset2;
-                  }
-                },
-                inputTime: settime.getHours()*60*60,   //Optional
-                format: 12,         //Optional
-                step: 30,           //Optional
-                setLabel: 'Set2'    //Optional
-              };
-              ionicTimePicker.openTimePicker(ipObj1);
-            }
+
+               if (hours.toString().length == 1  ){ hours = '0' + hours; }
+               if (minutes.toString().length == 1){ minutes = '0' + minutes; }
+
+                // $scope.timeset2 = settime.toLocaleDateString()+" "+hours+":"+minutes;
+                $scope.timeset2 = new Date(settime.getFullYear(), settime.getMonth(), settime.getDate(), hours, minutes);
+                $scope.date += " ~ "+$scope.timeset2.toLocaleTimeString() ;
+              }
+            },
+            inputTime: settime.getHours()*60*60,   //Optional
+            format: 12,         //Optional
+            step: 30,           //Optional
+            setLabel: 'Set2'    //Optional
+          };
+          ionicTimePicker.openTimePicker(ipObj1);
+        };
 
 }])
 
@@ -256,6 +264,82 @@ angular.module('starter.controllers', [])
   };
 
 })
+
+.controller('CalendarDemoCtrl', function ($scope,$http) {
+    'use strict';
+    $scope.calendar = {};
+    $scope.changeMode = function (mode) {
+        $scope.calendar.mode = mode;
+    };
+
+    $scope.loadEvents = function () {
+        readEvents();
+    };
+
+    $scope.onEventSelected = function (event) {
+        console.log('Event selected:' + event.startTime + '-' + event.endTime + ',' + event.title);
+    };
+
+    $scope.onViewTitleChanged = function (title) {
+        $scope.viewTitle = title;
+    };
+
+    $scope.today = function () {
+        $scope.calendar.currentDate = new Date();
+    };
+
+    $scope.isToday = function () {
+        var today = new Date(),
+            currentCalendarDate = new Date($scope.calendar.currentDate);
+
+        today.setHours(0, 0, 0, 0);
+        currentCalendarDate.setHours(0, 0, 0, 0);
+        return today.getTime() === currentCalendarDate.getTime();
+    };
+
+    $scope.onTimeSelected = function (selectedTime, events) {
+        console.log('Selected time: ' + selectedTime + ', hasEvents: ' + (events !== undefined && events.length !== 0));
+    };
+
+    function readEvents() {
+        $scope.events = [];
+
+        var ip = "http://infomirror.falinux.com:4000";
+
+        $http.get(ip+"/api/InofMirrorDBs?filter[order]=date%20ASC").then(function (response) {
+
+          $scope.lists = response.data;
+          console.log($scope.lists);
+          $scope.msg=response;
+
+        var startTime;
+        var endTime;
+
+        for (var i=0;i<$scope.lists.length;i++){
+          var date = new Date($scope.lists[i].date);
+          var endDate = new Date($scope.lists[i].endMeetTime);
+          startTime = new Date(date.getFullYear(), date.getMonth(), date.getDate(), date.getHours(), date.getMinutes());
+          endTime = new Date(endDate.getFullYear(), endDate.getMonth(), endDate.getDate(), endDate.getHours(), endDate.getMinutes());
+          $scope.events.push({
+              title: 'Event - ' + $scope.lists[i].person,
+              startTime: startTime,
+              endTime: endTime,
+              allDay: false
+          });
+
+        }
+        $scope.calendar.eventSource = $scope.events;
+      },
+      function (response) { $scope.msg=response;  })
+      .catch(function(reason){
+        console.log(reason);
+        $scope.msg = "error : "+response;
+        $scope.calendar.eventSource = [];
+      });
+    }
+
+})
+
 ;
 
 // ASCII only
@@ -267,11 +351,11 @@ function stringToBytes(string) {
     console.log(JSON.stringify(array));
     console.log(array.toString());
     return array.buffer;
+    return String.fromCharCode.apply(null, new Uint8Array(buffer));
 }
 
 // ASCII only
 function bytesToString(buffer) {
-    return String.fromCharCode.apply(null, new Uint8Array(buffer));
 }
 
 (function(g){"function"===typeof define&&define.amd?define(["jquery"],g):g(window.jQuery||window.Zepto)})(function(g){var y=function(a,f,d){var k=this,x;a=g(a);f="function"===typeof f?f(a.val(),void 0,a,d):f;k.init=function(){d=d||{};k.byPassKeys=[9,16,17,18,36,37,38,39,40,91];k.translation={0:{pattern:/\d/},9:{pattern:/\d/,optional:!0},"#":{pattern:/\d/,recursive:!0},A:{pattern:/[a-zA-Z0-9]/},S:{pattern:/[a-zA-Z]/}};k.translation=g.extend({},k.translation,d.translation);k=g.extend(!0,{},k,d);a.each(function(){!1!==
